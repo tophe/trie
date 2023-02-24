@@ -370,15 +370,26 @@ func (t *Trie) selectTrue(results *SearchResults, node *Node, prefixKey []string
 		pfx := append(prefixKey, key)
 		if child.isTerminal {
 			if eval(child.value) {
-				t.build(results, child, &pfx, &SearchOptions{})
-				// fmt.Printf("%v%v\n", prefixKey, child.value)
+				t.scanBuild(results, child, &pfx)
 			}
+			t.selectTrue(results, child, pfx, eval)
 
 		} else {
 			t.selectTrue(results, child, pfx, eval)
 		}
 	}
 	return results
+}
+
+func (t *Trie) scanBuild(results *SearchResults, node *Node, prefixKey *[]string) (stop bool) {
+	if node.isTerminal {
+		key := make([]string, len(*prefixKey))
+		copy(key, *prefixKey)
+		result := &SearchResult{Key: key, Value: node.value}
+		results.Results = append(results.Results, result)
+	}
+
+	return false
 }
 
 func (t *Trie) build(results *SearchResults, node *Node, prefixKey *[]string, opts *SearchOptions) (stop bool) {

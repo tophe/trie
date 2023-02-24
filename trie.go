@@ -1,7 +1,6 @@
 package trie
 
 import (
-	"fmt"
 	"github.com/shivamMg/ppds/tree"
 )
 
@@ -94,7 +93,6 @@ func (n *Node) childNodes() []*Node {
 
 // New returns a new instance of Trie.
 func New() *Trie {
-	fmt.Println("patched one ...")
 	return &Trie{root: newNode(RootKeyPart)}
 }
 

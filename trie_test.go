@@ -11,6 +11,30 @@ import (
 
 func TestTrie_Scan(t *testing.T) {
 	tri := trie.New()
+	existed := tri.Put([]string{"d", "a", "l", "i"}, 2)
+	assert.False(t, existed)
+	tri.Put([]string{"d", "a", "l", "i", "b", "e"}, 2)
+	tri.Put([]string{"d", "a", "l", "i", "b", "e", "r", "t"}, 1)
+
+	//tri.Root().Print()
+
+	rs := tri.SelectTrue(func(val interface{}) bool {
+		what := val.(int)
+		if what == 2 {
+			return true
+		}
+		return false
+	})
+
+	for _, res := range rs.Results {
+		fmt.Printf("%v:%v\n", res.Key, res.Value)
+	}
+	assert.True(t, len(rs.Results) == 2)
+
+}
+
+func TestTrie_xScan(t *testing.T) {
+	tri := trie.New()
 	existed := tri.Put([]string{"d", "a", "l", "i"}, 1)
 	assert.False(t, existed)
 	tri.Put([]string{"d", "a", "l", "u"}, 1)
