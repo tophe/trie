@@ -353,6 +353,34 @@ func (t *Trie) search(prefixKey []string, opts *SearchOptions) *SearchResults {
 	return results
 }
 
+// apply eval fun on every node.value, build a result with true value element
+func (t *Trie) SelectTrue(eval func(interface{}) bool) *SearchResults {
+	results := &SearchResults{}
+	node := t.root
+	t.selectTrue(results, node, []string{}, eval)
+	return results
+}
+
+func (t *Trie) selectTrue(results *SearchResults, node *Node, prefixKey []string, eval func(interface{}) bool) *SearchResults {
+	//var keys []string
+
+	for key, child := range node.children {
+		//fmt.Printf("%v\n", key)
+		//keys := []string{}
+		pfx := append(prefixKey, key)
+		if child.isTerminal {
+			if eval(child.value) {
+				t.build(results, child, &pfx, &SearchOptions{})
+				// fmt.Printf("%v%v\n", prefixKey, child.value)
+			}
+
+		} else {
+			t.selectTrue(results, child, pfx, eval)
+		}
+	}
+	return results
+}
+
 func (t *Trie) build(results *SearchResults, node *Node, prefixKey *[]string, opts *SearchOptions) (stop bool) {
 	if node.isTerminal {
 		key := make([]string, len(*prefixKey))
