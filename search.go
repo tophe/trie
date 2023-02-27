@@ -353,34 +353,35 @@ func (t *Trie) search(prefixKey []string, opts *SearchOptions) *SearchResults {
 	return results
 }
 
-// apply eval fun on every node.value, build a result with true value element
-func (t *Trie) SelectTrue(eval func(interface{}) bool) *SearchResults {
+// SelectOnValue: find item based on value.
+// apply eval func to each Value of the tree
+// build a result with key, value for each itme eval == true
+func (t *Trie) SelectOnValue(eval func(interface{}) bool) *SearchResults {
 	results := &SearchResults{}
 	node := t.root
-	t.selectTrue(results, node, []string{}, eval)
+	t.selectOnValue(results, node, []string{}, eval)
 	return results
 }
 
-func (t *Trie) selectTrue(results *SearchResults, node *Node, prefixKey []string, eval func(interface{}) bool) *SearchResults {
-	//var keys []string
+// selectOnValue: recursively apply eval an item tree
+func (t *Trie) selectOnValue(results *SearchResults, node *Node, prefixKey []string, eval func(interface{}) bool) *SearchResults {
 
 	for key, child := range node.children {
-		//fmt.Printf("%v\n", key)
-		//keys := []string{}
 		pfx := append(prefixKey, key)
 		if child.isTerminal {
 			if eval(child.value) {
 				t.scanBuild(results, child, &pfx)
 			}
-			t.selectTrue(results, child, pfx, eval)
+			t.selectOnValue(results, child, pfx, eval)
 
 		} else {
-			t.selectTrue(results, child, pfx, eval)
+			t.selectOnValue(results, child, pfx, eval)
 		}
 	}
 	return results
 }
 
+// scanBuild: build a result off scanned items
 func (t *Trie) scanBuild(results *SearchResults, node *Node, prefixKey *[]string) (stop bool) {
 	if node.isTerminal {
 		key := make([]string, len(*prefixKey))

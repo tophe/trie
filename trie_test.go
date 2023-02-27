@@ -1,7 +1,6 @@
 package trie_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/shivamMg/ppds/tree"
@@ -11,14 +10,12 @@ import (
 
 func TestTrie_Scan(t *testing.T) {
 	tri := trie.New()
-	existed := tri.Put([]string{"d", "a", "l", "i"}, 2)
-	assert.False(t, existed)
+	tri.Put([]string{"d", "a", "l", "i"}, 2)
+	tri.Put([]string{"d", "a", "l", "i", "b"}, 1)
 	tri.Put([]string{"d", "a", "l", "i", "b", "e"}, 2)
 	tri.Put([]string{"d", "a", "l", "i", "b", "e", "r", "t"}, 1)
 
-	//tri.Root().Print()
-
-	rs := tri.SelectTrue(func(val interface{}) bool {
+	rs := tri.SelectOnValue(func(val interface{}) bool {
 		what := val.(int)
 		if what == 2 {
 			return true
@@ -27,36 +24,40 @@ func TestTrie_Scan(t *testing.T) {
 	})
 
 	for _, res := range rs.Results {
-		fmt.Printf("%v:%v\n", res.Key, res.Value)
+		assert.True(t, res.Value == 2)
 	}
 	assert.True(t, len(rs.Results) == 2)
 
 }
 
-func TestTrie_xScan(t *testing.T) {
+func TestTrie_ScanComplex(t *testing.T) {
 	tri := trie.New()
-	existed := tri.Put([]string{"d", "a", "l", "i"}, 1)
-	assert.False(t, existed)
-	tri.Put([]string{"d", "a", "l", "u"}, 1)
-	tri.Put([]string{"s", "a", "l", "v", "a", "d", "o", "r"}, 2)
-	tri.Put([]string{"s", "a", "l", "v", "a", "d", "i", "r"}, 2)
-	tri.Put([]string{"m", "a", "t", "a", "d", "o", "r"}, 2)
-	tri.Put([]string{"m", "a", "t", "a", "d", "u", "r"}, 2)
+	tri.Put([]string{"d", "a", "l", "i"}, []int{0, 1, 2, 4, 5})
+	tri.Put([]string{"d", "a", "l", "i", "b"}, []int{1, 2, 4, 5})
+	tri.Put([]string{"d", "a", "l", "i", "b", "e"}, []int{0, 1, 2, 4, 5})
+	tri.Put([]string{"d", "a", "l", "i", "b", "e", "r", "t"}, []int{1, 2, 4, 5})
 
-	//tri.Root().Print()
-
-	rs := tri.SelectTrue(func(val interface{}) bool {
-		what := val.(int)
-		if what == 2 {
-			return true
+	rs := tri.SelectOnValue(func(val interface{}) bool {
+		what := val.([]int)
+		for _, i := range what {
+			if i == 0 {
+				return true
+			}
 		}
 		return false
 	})
 
 	for _, res := range rs.Results {
-		fmt.Printf("%v:%v\n", res.Key, res.Value)
+		what := res.Value.([]int)
+		ok := false
+		for _, i := range what {
+			if i == 0 {
+				ok = true
+			}
+		}
+		assert.True(t, ok)
 	}
-	assert.True(t, len(rs.Results) == 4)
+	assert.True(t, len(rs.Results) == 2)
 
 }
 
