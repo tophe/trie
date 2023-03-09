@@ -4,6 +4,7 @@ import (
 	"container/heap"
 	"errors"
 	"math"
+	"strings"
 )
 
 type EditOpType int
@@ -353,53 +354,79 @@ func (t *Trie) search(prefixKey []string, opts *SearchOptions) *SearchResults {
 	return results
 }
 
-type WalkFunc func(interface{}) bool
+type FilterFunc func(interface{}) bool
 
-// Walk: find item based on value.
+// Filter: find item based on value.
 // apply eval func to each Value of the tree
 // build a result with key, value for each itme eval == true
-func (t *Trie) Walk(walker WalkFunc) *SearchResults {
+func (t *Trie) Filter(filter FilterFunc) *SearchResults {
 	results := &SearchResults{}
 	node := t.root
-	t.walk(results, node, []string{}, walker)
+	t.filter(results, node, []string{}, filter)
 	return results
 }
 
-// walk: recursively apply eval an item tree
-func (t *Trie) walk(results *SearchResults, node *Node, prefixKey []string, walker WalkFunc) *SearchResults {
+// filter: recursively apply eval an item tree
+func (t *Trie) filter(results *SearchResults, node *Node, prefixKey []string, filter FilterFunc) *SearchResults {
 
 	for dllNode := node.childrenDLL.head; dllNode != nil; dllNode = dllNode.next {
-		node := dllNode.trieNode
-		key := node.keyPart
+		child := dllNode.trieNode
+		key := child.keyPart
 		pfx := append(prefixKey, key)
-		if node.isTerminal {
-			if walker(node.value) {
-				t.scanBuild(results, node, &pfx)
+		if child.isTerminal {
+			if filter(child.value) {
+				t.scanBuild(results, child, &pfx)
 			}
-			t.walk(results, node, pfx, walker)
+			t.filter(results, child, pfx, filter)
 
 		} else {
-			t.walk(results, node, pfx, walker)
+			t.filter(results, child, pfx, filter)
 		}
 	}
 	return results
 }
 
-func (t *Trie) olddwalk(results *SearchResults, node *Node, prefixKey []string, walker WalkFunc) *SearchResults {
+// TODO: remove
+func (t *Trie) olddwalk(results *SearchResults, node *Node, prefixKey []string, filter FilterFunc) *SearchResults {
 
 	for key, child := range node.children {
 		pfx := append(prefixKey, key)
 		if child.isTerminal {
-			if walker(child.value) {
+			if filter(child.value) {
 				t.scanBuild(results, child, &pfx)
 			}
-			t.walk(results, child, pfx, walker)
+			t.olddwalk(results, child, pfx, filter)
 
 		} else {
-			t.walk(results, child, pfx, walker)
+			t.olddwalk(results, child, pfx, filter)
 		}
 	}
 	return results
+}
+
+type WalkFunc func(value *interface{}) error
+
+// Walk: apply walker func to every children node, starting at node key
+func (t *Trie) Walk(key string, walker WalkFunc) error {
+	node := t.root
+	err := t.walk(key, node, []string{}, walker)
+	return err
+}
+
+func (t *Trie) walk(startKey string, node *Node, prefixKey []string, walker WalkFunc) error {
+
+	for dllNode := node.childrenDLL.head; dllNode != nil; dllNode = dllNode.next {
+		child := dllNode.trieNode
+		key := child.keyPart
+		pfx := append(prefixKey, key)
+		if child.isTerminal && strings.HasPrefix(strings.Join(pfx, ""), startKey) {
+			if err := walker(&child.value); err != nil {
+				return err
+			}
+		}
+		t.walk(startKey, child, pfx, walker)
+	}
+	return nil
 }
 
 // scanBuild: build a result off scanned items
