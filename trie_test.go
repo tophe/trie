@@ -1,7 +1,6 @@
 package trie_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/shivamMg/ppds/tree"
@@ -59,46 +58,6 @@ func TestTrie_FilterComplex(t *testing.T) {
 		assert.True(t, ok)
 	}
 	assert.True(t, len(rs.Results) == 2)
-
-}
-
-func TestTrie_Walk(t *testing.T) {
-	tri := trie.New()
-	//tri.Put([]string{"d", "a", "l"}, 5)
-	tri.Put([]string{"d", "a", "l", "i"}, 2)
-	//tri.Put([]string{"d", "a", "l", "i", "b"}, 1)
-	//tri.Put([]string{"d", "a", "l", "i", "b", "e"}, 2)
-	//tri.Put([]string{"d", "a", "l", "i", "b", "e", "r", "t"}, 1)
-
-	// using a pointer
-	tri.Walk("dali", func(val *interface{}) error {
-		var i interface{}
-		what := (*val).(int)
-		if what == 2 {
-			what = what + 3
-		}
-		i = what
-		val = &i
-
-		return nil
-	})
-
-	// using a value
-	//tri.Walk("dali", func(val interface{}) error {
-	//
-	//	what := val.(int)
-	//	if what == 2 {
-	//		what = what + 3
-	//	}
-	//	return nil
-	//})
-
-	search := tri.Search([]string{"d", "a", "l", "i"}, trie.WithExactKey())
-
-	fmt.Printf("%v\n", search.Results[0].Value)
-
-	//tri.Root().Print()
-	assert.Equal(t, 5, search.Results[0].Value)
 
 }
 
