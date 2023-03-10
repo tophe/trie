@@ -10,10 +10,12 @@ import (
 
 func TestTrie_Filter(t *testing.T) {
 	tri := trie.New()
+	tri.Put([]string{"z"}, 2)
 	tri.Put([]string{"d", "a", "l", "i"}, 2)
 	tri.Put([]string{"d", "a", "l", "i", "b"}, 1)
 	tri.Put([]string{"d", "a", "l", "i", "b", "e"}, 2)
 	tri.Put([]string{"d", "a", "l", "i", "b", "e", "r", "t"}, 1)
+	tri.Put([]string{"a", "a"}, 2)
 
 	rs := tri.Filter(func(val interface{}) bool {
 		what := val.(int)
@@ -24,9 +26,30 @@ func TestTrie_Filter(t *testing.T) {
 	})
 
 	for _, res := range rs.Results {
-		assert.True(t, res.Value == 2)
+		assert.Equal(t, 2, res.Value)
 	}
-	assert.True(t, len(rs.Results) == 2)
+	assert.Equal(t, 4, len(rs.Results))
+
+	dOrders := []struct {
+		key []string
+	}{
+		{
+			key: []string{"z"},
+		},
+		{
+			key: []string{"d", "a", "l", "i"},
+		},
+		{
+			[]string{"d", "a", "l", "i", "b", "e"},
+		},
+		{
+			[]string{"a", "a"},
+		},
+	}
+
+	for i, ord := range dOrders {
+		assert.Equal(t, ord.key, rs.Results[i].Key)
+	}
 
 }
 
@@ -57,7 +80,7 @@ func TestTrie_FilterComplex(t *testing.T) {
 		}
 		assert.True(t, ok)
 	}
-	assert.True(t, len(rs.Results) == 2)
+	assert.Equal(t, 2, len(rs.Results))
 
 }
 
